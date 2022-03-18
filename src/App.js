@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useDeferredValue } from 'react';
 import {
   VictoryChart,
   VictoryScatter,
@@ -13,20 +13,9 @@ import './App.css';
 
 function App() {
   const [value, setValue] = useState('');
+  const deferredValue = useDeferredValue(value);
 
-  const data = value.split('').reduce((acc) => {
-    const points = [];
-
-    for (let i = 0; i < 25; i++) {
-      points.push({
-        x: Math.random() * 20,
-        y: Math.random() * 200,
-        fill: i % 3 === 0 ? '#E6497A' : i % 2 === 0 ? '#3EB0E6' : '#E6D765',
-      });
-    }
-
-    return [...acc, ...points];
-  }, []);
+  const isStale = value !== deferredValue;
 
   return (
     <div className="App">
@@ -42,83 +31,131 @@ function App() {
           />
         </label>
 
-        <div style={{ display: 'flex' }}>
-          <VictoryChart
-            theme={VictoryTheme.material}
-            height={400}
-            width={400}
-            domain={{ x: [0, 20], y: [0, 200] }}
-            containerComponent={<VictoryContainer responsive={false} />}
-          >
-            <VictoryScatter
-              size={5}
-              data={data}
-              style={{
-                data: {
-                  fill: ({ datum }) => {
-                    return datum.fill;
-                  },
-                },
-              }}
-            />
-          </VictoryChart>
-          <VictoryChart
-            theme={VictoryTheme.material}
-            height={400}
-            width={400}
-            domain={{ x: [0, 20], y: [0, 200] }}
-            containerComponent={<VictoryContainer responsive={false} />}
-          >
-            <VictoryBar
-              size={5}
-              data={data}
-              style={{
-                data: {
-                  fill: ({ datum }) => {
-                    return datum.fill;
-                  },
-                },
-              }}
-            />
-          </VictoryChart>
+        <div style={{ position: 'relative' }}>
+          {/* {isStale && ( */}
+          <div className={`spinner-container ${isStale ? 'spinner-container-visible' : ''}`}>
+            <Spinner isStale={isStale} />
+          </div>
+          {/* )} */}
+          <Charts queryValue={deferredValue} />
         </div>
-        <VictoryChart
-          theme={VictoryTheme.material}
-          height={400}
-          width={800}
-          domain={{ x: [0, 20], y: [0, 200] }}
-          containerComponent={<VictoryContainer responsive={false} />}
-        >
-          <VictoryStack>
-            <VictoryArea
-              data={data}
-              style={{
-                data: {
-                  fill: '#E6497A',
-                },
-              }}
-            />
-            <VictoryArea
-              data={data}
-              style={{
-                data: {
-                  fill: '#3EB0E6',
-                },
-              }}
-            />
-            <VictoryArea
-              data={data}
-              style={{
-                data: {
-                  fill: '#E6D765',
-                },
-              }}
-            />
-          </VictoryStack>
-        </VictoryChart>
       </section>
     </div>
   );
 }
 
 export default App;
+
+const Charts = React.memo(({ queryValue }) => {
+  const data = queryValue.split('').reduce((acc) => {
+    const points = [];
+
+    for (let i = 0; i < 25; i++) {
+      points.push({
+        x: Math.random() * 20,
+        y: Math.random() * 200,
+        fill: i % 3 === 0 ? '#E6497A' : i % 2 === 0 ? '#3EB0E6' : '#E6D765',
+      });
+    }
+
+    return [...acc, ...points];
+  }, []);
+
+  return (
+    <>
+      <div style={{ display: 'flex' }}>
+        <VictoryChart
+          theme={VictoryTheme.material}
+          height={400}
+          width={400}
+          domain={{ x: [0, 20], y: [0, 200] }}
+          containerComponent={<VictoryContainer responsive={false} />}
+        >
+          <VictoryScatter
+            size={5}
+            data={data}
+            style={{
+              data: {
+                fill: ({ datum }) => {
+                  return datum.fill;
+                },
+              },
+            }}
+          />
+        </VictoryChart>
+        <VictoryChart
+          theme={VictoryTheme.material}
+          height={400}
+          width={400}
+          domain={{ x: [0, 20], y: [0, 200] }}
+          containerComponent={<VictoryContainer responsive={false} />}
+        >
+          <VictoryBar
+            size={5}
+            data={data}
+            style={{
+              data: {
+                fill: ({ datum }) => {
+                  return datum.fill;
+                },
+              },
+            }}
+          />
+        </VictoryChart>
+      </div>
+      <VictoryChart
+        theme={VictoryTheme.material}
+        height={400}
+        width={800}
+        domain={{ x: [0, 20], y: [0, 200] }}
+        containerComponent={<VictoryContainer responsive={false} />}
+      >
+        <VictoryStack>
+          <VictoryArea
+            data={data}
+            style={{
+              data: {
+                fill: '#E6497A',
+              },
+            }}
+          />
+          <VictoryArea
+            data={data}
+            style={{
+              data: {
+                fill: '#3EB0E6',
+              },
+            }}
+          />
+          <VictoryArea
+            data={data}
+            style={{
+              data: {
+                fill: '#E6D765',
+              },
+            }}
+          />
+        </VictoryStack>
+      </VictoryChart>
+    </>
+  );
+});
+
+function Spinner({ isStale }) {
+  return (
+    <div class={`lds-spinner ${isStale ? 'lds-spinner-visible' : ''}`}>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  );
+}

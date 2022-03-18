@@ -13,8 +13,6 @@ import './App.css';
 
 function App() {
   const [value, setValue] = useState('');
-  const [data, setData] = useState(null);
-  const [isPending, startTransition] = useTransition();
 
   return (
     <div className="App">
@@ -24,35 +22,14 @@ function App() {
           <input
             id="user-input"
             value={value}
-            onChange={(e) => {
-              setValue(e.target.value);
-              startTransition(() => {
-                const data = e.target.value.split('').reduce((acc) => {
-                  const points = [];
-
-                  for (let i = 0; i < 25; i++) {
-                    points.push({
-                      x: Math.random() * 20,
-                      y: Math.random() * 200,
-                      fill: i % 3 === 0 ? '#E6497A' : i % 2 === 0 ? '#3EB0E6' : '#E6D765',
-                    });
-                  }
-
-                  return [...acc, ...points];
-                }, []);
-                setData(data);
-              });
-            }}
+            onChange={(e) => setValue(e.target.value)}
             style={{ width: 400, height: 40, fontSize: 16 }}
             placeholder="longer input -> more dom nodes -> slow :("
           />
         </label>
 
         <div style={{ position: 'relative' }}>
-          <div className={`spinner-container ${isPending ? 'spinner-container-visible' : ''}`}>
-            <Spinner />
-          </div>
-          <Charts data={data} />
+          <Charts query={value} />
         </div>
       </section>
     </div>
@@ -61,7 +38,21 @@ function App() {
 
 export default App;
 
-const Charts = React.memo(({ data }) => {
+const Charts = React.memo(({ query }) => {
+  const data = query.split('').reduce((acc) => {
+    const points = [];
+
+    for (let i = 0; i < 25; i++) {
+      points.push({
+        x: Math.random() * 20,
+        y: Math.random() * 200,
+        fill: i % 3 === 0 ? '#E6497A' : i % 2 === 0 ? '#3EB0E6' : '#E6D765',
+      });
+    }
+
+    return [...acc, ...points];
+  }, []);
+
   return (
     <>
       <div style={{ display: 'flex' }}>

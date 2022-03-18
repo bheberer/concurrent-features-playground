@@ -1,4 +1,4 @@
-import React, { useState, useDeferredValue } from 'react';
+import React, { useMemo, useState, useTransition } from 'react';
 import {
   VictoryChart,
   VictoryScatter,
@@ -13,9 +13,8 @@ import './App.css';
 
 function App() {
   const [value, setValue] = useState('');
-  const deferredValue = useDeferredValue(value);
-
-  const isStale = value !== deferredValue;
+  const [data, setData] = useState(null);
+  const [isPending, startTransition] = useTransition();
 
   return (
     <div className="App">
@@ -25,19 +24,35 @@ function App() {
           <input
             id="user-input"
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => {
+              setValue(e.target.value);
+              startTransition(() => {
+                const data = e.target.value.split('').reduce((acc) => {
+                  const points = [];
+
+                  for (let i = 0; i < 25; i++) {
+                    points.push({
+                      x: Math.random() * 20,
+                      y: Math.random() * 200,
+                      fill: i % 3 === 0 ? '#E6497A' : i % 2 === 0 ? '#3EB0E6' : '#E6D765',
+                    });
+                  }
+
+                  return [...acc, ...points];
+                }, []);
+                setData(data);
+              });
+            }}
             style={{ width: 400, height: 40, fontSize: 16 }}
             placeholder="longer input -> more dom nodes -> slow :("
           />
         </label>
 
         <div style={{ position: 'relative' }}>
-          {/* {isStale && ( */}
-          <div className={`spinner-container ${isStale ? 'spinner-container-visible' : ''}`}>
-            <Spinner isStale={isStale} />
+          <div className={`spinner-container ${isPending ? 'spinner-container-visible' : ''}`}>
+            <Spinner />
           </div>
-          {/* )} */}
-          <Charts queryValue={deferredValue} />
+          <Charts data={data} />
         </div>
       </section>
     </div>
@@ -46,21 +61,7 @@ function App() {
 
 export default App;
 
-const Charts = React.memo(({ queryValue }) => {
-  const data = queryValue.split('').reduce((acc) => {
-    const points = [];
-
-    for (let i = 0; i < 25; i++) {
-      points.push({
-        x: Math.random() * 20,
-        y: Math.random() * 200,
-        fill: i % 3 === 0 ? '#E6497A' : i % 2 === 0 ? '#3EB0E6' : '#E6D765',
-      });
-    }
-
-    return [...acc, ...points];
-  }, []);
-
+const Charts = React.memo(({ data }) => {
   return (
     <>
       <div style={{ display: 'flex' }}>
